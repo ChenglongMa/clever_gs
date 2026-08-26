@@ -13,9 +13,10 @@ import Levenshtein
 from seleniumbase import Driver
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.support.ui import WebDriverWait
+from datetime import datetime
 
 
-def main(first_name, last_name, google_scholar_code):
+def main(first_name, last_name, google_scholar_code, lookback="1"):
 	# TODO - initials and name permutations
 	AUTHOR_NAME = {
 			"f_m" : [first_name],
@@ -92,10 +93,10 @@ def main(first_name, last_name, google_scholar_code):
 	def are_similar(x,y):
 		return (Levenshtein.distance(x.lower(), y.lower()) <= 15)
 
-	LOOKBEHIND = 1
-	CURRENT_YEAR = 2025
+	LOOKBEHIND = max(int(lookback), 1) if lookback.isdigit() else 1
+	CURRENT_YEAR = datetime.now().year
 	flagged_entries = list()
-	years_qualifying = [x for x in range(CURRENT_YEAR-LOOKBEHIND, CURRENT_YEAR+1)]
+	years_qualifying = list(range(CURRENT_YEAR - LOOKBEHIND, CURRENT_YEAR + 1))
 	for x in google_scholar_entries:
 		try:
 			if ((not any([are_similar(x["title"], y) for y in adms_entries])) and (int(x["date"]) in years_qualifying)):
@@ -109,4 +110,5 @@ if (__name__ == "__main__"):
 	first_name = sys.argv[1] # "Abdul"
 	last_name = sys.argv[2] # "Obeid"
 	google_scholar_code = sys.argv[3] # "iAtNdR8AAAAJ"
-	main(first_name, last_name, google_scholar_code)
+	lookback = sys.argv[4] if (len(sys.argv) > 4) else "1"
+	main(first_name, last_name, google_scholar_code, lookback)
